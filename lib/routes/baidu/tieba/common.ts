@@ -95,7 +95,6 @@ export async function getTiebaPageContent(
                 }
             }
             /* eslint-enable no-await-in-loop */
-
             throw lastError || new Error('Failed to fetch page content');
         },
         config.cache.routeExpire,
