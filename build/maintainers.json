@@ -746,6 +746,9 @@
   "/baidu/search/:keyword": [
     "CaoMeiYouRen"
   ],
+  "/baidu/top/:board?": [
+    "xyqfer"
+  ],
   "/baidu/tieba/forum/good/:kw/:cid?/:sortBy?": [
     "u3u",
     "FlanChanXwO"
@@ -770,9 +773,6 @@
     "igxlin",
     "nczitzk",
     "FlanChanXwO"
-  ],
-  "/baidu/top/:board?": [
-    "xyqfer"
   ],
   "/baijing/article": [
     "p3psi-boo"
