@@ -1,6 +1,6 @@
-import type { CheerioAPI } from 'cheerio';
+import type {CheerioAPI} from 'cheerio';
 
-import { parseRelativeDate } from '@/utils/parse-date';
+import {parseRelativeDate} from '@/utils/parse-date';
 
 /**
  * 解析相对时间（如"回复于4小时前"）为实际日期
@@ -47,7 +47,7 @@ export function parseThreads($: CheerioAPI): Thread[] {
                 .find('.image-list-item img')
                 .toArray()
                 .map((img) => $(img).attr('data-src'))
-                .filter((src): src is string => !!src);
+                .filter((src): src is string => src !== undefined && src !== '');
 
             return {
                 id,
@@ -83,7 +83,7 @@ export function parseThreads($: CheerioAPI): Thread[] {
                     .find('.threadlist_pic img')
                     .toArray()
                     .map((img) => $(img).attr('src') || $(img).attr('bpic') || '')
-                    .filter((src): src is string => Boolean(src)),
+                    .filter((src) => src !== ''),
                 link: linkHref,
             };
         })
