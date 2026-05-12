@@ -12859,7 +12859,7 @@ export default {
               "description": "百度 cookie 值，用于需要登录的贴吧页面"
             }
           ],
-          "requirePuppeteer": true,
+          "requirePuppeteer": false,
           "antiCrawler": true,
           "supportBT": false,
           "supportPodcast": false,
@@ -12895,7 +12895,7 @@ export default {
               "description": "百度 cookie 值，用于需要登录的贴吧页面"
             }
           ],
-          "requirePuppeteer": true,
+          "requirePuppeteer": false,
           "antiCrawler": true,
           "supportBT": false,
           "supportPodcast": false,
