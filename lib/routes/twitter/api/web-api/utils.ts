@@ -13,6 +13,7 @@ import proxy from '@/utils/proxy';
 import type { TwitterAccount } from '../../account';
 import { baseUrl, bearerToken, gqlFeatures, gqlMap, thirdPartySupportedAPI } from './constants';
 import login from './login';
+import { getRateLimitTtl } from './rate-limit';
 
 let authTokenIndex = 0;
 
@@ -213,14 +214,10 @@ export const twitterGot = async (
         throw new Error(`Twitter account authentication failed: ${response.status}`);
     }
     if (auth) {
-        if (remaining && remainingInt < 2 && reset) {
-            const resetTime = new Date(Number.parseInt(reset) * 1000);
-            const delay = (resetTime.getTime() - Date.now()) / 1000;
-            logger.debug(`twitter debug: twitter rate limit exceeded for selected credential with status ${response.status}, will unlock after ${delay}s`);
-            await cache.set(lockKey, '1', Math.ceil(delay) * 2);
-        } else if (response.status === 429 || JSON.stringify(responseData?.data) === '{"user":{}}') {
-            logger.debug(`twitter debug: twitter rate limit exceeded for selected credential with status ${response.status}`);
-            await cache.set(lockKey, '1', 2000);
+        if (response.status === 429 || (remaining && remainingInt < 2 && reset) || JSON.stringify(responseData?.data) === '{"user":{}}') {
+            const ttl = getRateLimitTtl(reset, Boolean(account));
+            logger.debug(`twitter debug: twitter rate limit exceeded for selected credential with status ${response.status}, will unlock after ${ttl}s`);
+            await cache.set(lockKey, '1', ttl);
         } else if (response.status === 403 || response.status === 401) {
             const newCookie = await login({
                 username: auth.username,
@@ -251,7 +248,7 @@ export const twitterGot = async (
                 logger.debug(`twitter debug: delete twitter cookie for selected credential with status ${response.status}, remaining tokens: ${config.twitter.authToken?.length}`);
                 await cache.set(lockKey, '1', 3600);
             }
-        } else {
+        } else if (!account) {
             logger.debug('twitter debug: unlock twitter cookie with success for selected credential');
             await cache.set(lockKey, '', 1);
         }
@@ -264,7 +261,7 @@ export const twitterGot = async (
         throw new Error('Twitter account API returned no timeline data');
     }
 
-    if (auth?.token) {
+    if (auth?.token && !account) {
         logger.debug('twitter debug: update twitter cookie for selected credential');
         await cache.set(`twitter:cookie:${tokenScope}`, JSON.stringify(dispatchers?.jar.serializeSync()), config.cache.contentExpire);
     }
