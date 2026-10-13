@@ -3,6 +3,7 @@ import xxhash from 'xxhash-wasm';
 
 import { config } from '@/config';
 import RequestInProgressError from '@/errors/types/request-in-progress';
+import type { TwitterAccount } from '@/routes/twitter/account';
 import type { Data } from '@/types';
 import cacheModule from '@/utils/cache/index';
 
@@ -21,8 +22,10 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
     const requestPath = ctx.req.path;
     const format = `:${ctx.req.query('format') || 'rss'}`;
     const limit = ctx.req.query('limit') ? `:${ctx.req.query('limit')}` : '';
-    const key = 'rsshub:koa-redis-cache:' + h64ToString(requestPath + format + limit);
-    const controlKey = 'rsshub:path-requested:' + h64ToString(requestPath + format + limit);
+    const account: TwitterAccount | undefined = ctx.get('twitterAccount');
+    const cachePath = requestPath + format + limit + (account ? `:${account.scope}` : '');
+    const key = 'rsshub:koa-redis-cache:' + h64ToString(cachePath);
+    const controlKey = 'rsshub:path-requested:' + h64ToString(cachePath);
 
     let value = await cacheModule.globalCache.get(key);
 
