@@ -3,6 +3,7 @@ import InvalidParameterError from '@/errors/types/invalid-parameter';
 import cache from '@/utils/cache';
 import ofetch from '@/utils/ofetch';
 
+import type { TwitterAccount } from '../../account';
 import { baseUrl, gqlFeatures, gqlMap, initGqlMap } from './constants';
 import { gatherLegacyFromData, paginationTweets, twitterGot } from './utils';
 
@@ -179,7 +180,7 @@ const getUser = async (id: string) => {
     };
 };
 
-const getHomeTimeline = async (id: string, params?: Record<string, any>) =>
+const getHomeTimeline = async (id: string, params?: Record<string, any>, account?: TwitterAccount) =>
     gatherLegacyFromData(
         await paginationTweets(
             'HomeTimeline',
@@ -192,11 +193,12 @@ const getHomeTimeline = async (id: string, params?: Record<string, any>) =>
                 requestContext: 'launch',
                 withCommunity: true,
             },
-            ['home', 'home_timeline_urt']
+            ['home', 'home_timeline_urt'],
+            account
         )
     );
 
-const getHomeLatestTimeline = async (id: string, params?: Record<string, any>) =>
+const getHomeLatestTimeline = async (id: string, params?: Record<string, any>, account?: TwitterAccount) =>
     gatherLegacyFromData(
         await paginationTweets(
             'HomeLatestTimeline',
@@ -209,7 +211,8 @@ const getHomeLatestTimeline = async (id: string, params?: Record<string, any>) =
                 requestContext: 'launch',
                 withCommunity: true,
             },
-            ['home', 'home_timeline_urt']
+            ['home', 'home_timeline_urt'],
+            account
         )
     );
 

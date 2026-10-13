@@ -219,6 +219,7 @@ type ConfigEnvKeys =
     // | 'TWITTER_AUTHENTICATION_SECRET'
     // | 'TWITTER_PHONE_OR_EMAIL'
     | 'TWITTER_AUTH_TOKEN'
+    | `TWITTER_AUTH_TOKEN_${string}`
     | 'TWITTER_THIRD_PARTY_API'
     | 'UESTC_BBS_COOKIE'
     | 'UESTC_BBS_AUTH_STR'
@@ -651,6 +652,7 @@ export type Config = {
         // authenticationSecret?: string[];
         // phoneOrEmail?: string[];
         authToken?: string[];
+        namedAuthTokens: Record<string, string | undefined>;
         thirdPartyApi?: string;
     };
     uestc: {
@@ -1156,6 +1158,11 @@ const calculateValue = () => {
             // authenticationSecret: envs.TWITTER_AUTHENTICATION_SECRET?.split(','),
             // phoneOrEmail: envs.TWITTER_PHONE_OR_EMAIL?.split(','),
             authToken: envs.TWITTER_AUTH_TOKEN?.split(','),
+            namedAuthTokens: Object.fromEntries(
+                Object.entries(envs)
+                    .filter(([name]) => /^TWITTER_AUTH_TOKEN_[A-Z][A-Z0-9_]*$/.test(name))
+                    .map(([name, token]) => [name.slice('TWITTER_AUTH_TOKEN_'.length), token])
+            ),
             thirdPartyApi: envs.TWITTER_THIRD_PARTY_API,
         },
         uestc: {

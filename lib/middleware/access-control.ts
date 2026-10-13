@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from 'hono';
 
 import { config } from '@/config';
 import RejectError from '@/errors/types/reject';
+import { getTwitterAccountAlias, resolveTwitterAccount } from '@/routes/twitter/account';
 import md5 from '@/utils/md5';
 
 const reject = (requestPath) => {
@@ -16,8 +17,12 @@ const middleware: MiddlewareHandler = async (ctx, next) => {
     if (['/', '/robots.txt', '/favicon.ico', '/logo.png'].includes(requestPath)) {
         await next();
     } else {
-        if (config.accessKey && !(config.accessKey === accessKey || accessCode === md5(requestPath + config.accessKey))) {
+        const accountAlias = getTwitterAccountAlias(requestPath);
+        if ((config.accessKey || accountAlias !== undefined) && (!config.accessKey || !(config.accessKey === accessKey || accessCode === md5(requestPath + config.accessKey)))) {
             return reject(requestPath);
+        }
+        if (accountAlias !== undefined) {
+            ctx.set('twitterAccount', resolveTwitterAccount(accountAlias));
         }
         await next();
     }

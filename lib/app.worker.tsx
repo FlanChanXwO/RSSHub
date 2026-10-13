@@ -57,8 +57,8 @@ app.use(trace);
 // - antiHotlink: cheerio
 // - parameter: cheerio, sanitize-html, @jocmp/mercury-parser
 
-app.use(cache);
 app.use(accessControl);
+app.use(cache);
 app.use(debug);
 app.use(template);
 app.use(header);

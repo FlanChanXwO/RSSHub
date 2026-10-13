@@ -44,6 +44,17 @@ generates
 
 <img loading="lazy" src="/img/readable-twitter.png" alt="Readable Twitter RSS of Durov" />
 
+Named accounts for the existing home timeline routes:
+
+- Configure \`TWITTER_AUTH_TOKEN_A\`, \`TWITTER_AUTH_TOKEN_B\`, etc. Each value is one \`auth_token\`; aliases start with an uppercase letter and contain uppercase letters, digits, or underscores.
+- Set \`ACCESS_KEY\`. Use \`/twitter/home/account=A\` for For You or \`/twitter/home_latest/account=A\` for Following. Existing routeParams can be combined with \`account\` in the same path segment.
+- Give RSSBot the URL with \`?code=...\`, where the code is the existing MD5 of the exact pathname plus \`ACCESS_KEY\`. Do not give RSSBot the instance access key.
+- Named requests never rotate to another account. Updating a token may switch the account while keeping the URL; removing its ENV entry revokes all subscriptions for that alias. Restart RSSHub after changes; recreate Docker containers when changing their environment.
+- Keep the existing cache configuration: the default memory cache works, and Redis is optional.
+- Route cache, cookie cache, rate-limit state, and ETag are scoped to the alias and credential. Private responses require revalidation and cannot be stored in shared proxy caches. Rotating \`ACCESS_KEY\` invalidates all old access codes.
+- Without \`account\`, the original \`TWITTER_AUTH_TOKEN\` pool and authentication behavior remain unchanged. Pixiv remains single-account.
+- To roll back, restore the previous image, ENV configuration, and subscription URLs. No credential database or file migration is required.
+
 Currently supports two authentication methods:
 
 - Using \`TWITTER_AUTH_TOKEN\` (recommended): Configure a comma-separated list of \`auth_token\` cookies of logged-in Twitter Web. RSSHub will use this information to directly access Twitter's web API to obtain data.

@@ -1,7 +1,8 @@
-/// <reference types="@cloudflare/vitest-pool-workers" />
+/// <reference types="@cloudflare/vitest-pool-workers/types" />
 import { env } from 'cloudflare:test';
 import { describe, expect, it, vi } from 'vitest';
 
+import { getRateLimitTtl } from '@/routes/twitter/api/web-api/rate-limit';
 import cache, { setKVNamespace } from '@/utils/cache/index.worker';
 import kv from '@/utils/cache/kv';
 
@@ -73,5 +74,31 @@ describe('worker cache with KV binding', () => {
     it('exposes get/set through globalCache', async () => {
         await cache.globalCache.set('worker:global', { b: 2 }, 60);
         expect(await cache.globalCache.get('worker:global')).toBe('{"b":2}');
+    });
+});
+
+describe('Twitter cooldowns in Worker KV', () => {
+    it.each(['2000000010', 'NaN', 'Infinity', '0', '-1', '123junk'])('stores legal TTLs for reset %s', async (reset) => {
+        setKVNamespace(env.CACHE);
+        vi.spyOn(Date, 'now').mockReturnValue(2_000_000_000_000);
+        try {
+            const key = `twitter:lock-token1:test-${reset}`;
+            const ttl = getRateLimitTtl(reset, true);
+            expect(ttl).toBe(reset === '2000000010' ? 60 : 2000);
+            await cache.set(key, '1', ttl);
+            expect(await env.CACHE.get(key)).toBe('1');
+            expect(await env.CACHE.get(`rsshub:cacheTtl:${key}`)).toBe(String(ttl));
+        } finally {
+            vi.restoreAllMocks();
+        }
+    });
+
+    it('also respects the KV minimum for legacy credentials', () => {
+        vi.spyOn(Date, 'now').mockReturnValue(2_000_000_000_000);
+        try {
+            expect(getRateLimitTtl('2000000001', false)).toBe(60);
+        } finally {
+            vi.restoreAllMocks();
+        }
     });
 });

@@ -1,6 +1,8 @@
 import type { Route } from '@/types';
 
+import type { TwitterAccount } from './account';
 import api from './api';
+import webApi from './api/web-api/api';
 import utils from './utils';
 
 export const route: Route = {
@@ -19,7 +21,7 @@ export const route: Route = {
             // },
             {
                 name: 'TWITTER_AUTH_TOKEN',
-                description: 'Please see above for details.',
+                description: 'Use TWITTER_AUTH_TOKEN for legacy requests, or TWITTER_AUTH_TOKEN_<ALIAS> and ACCESS_KEY for named accounts.',
             },
         ],
         requirePuppeteer: false,
@@ -31,6 +33,7 @@ export const route: Route = {
     name: 'Home timeline',
     maintainers: ['DIYgod', 'CaoMeiYouRen'],
     handler,
+    description: 'Select a named ENV credential with `account=A` in routeParams. Named accounts require ACCESS_KEY; credentials change after restarting RSSHub.',
     radar: [
         {
             source: ['x.com/home'],
@@ -44,8 +47,10 @@ async function handler(ctx) {
     const { count, include_rts, only_media } = utils.parseRouteParams(ctx.req.param('routeParams'));
     const params = count ? { count } : {};
 
-    await api.init();
-    let data = await api.getHomeTimeline('', params);
+    const account: TwitterAccount | undefined = ctx.get('twitterAccount');
+    const selectedApi = account ? webApi : api;
+    await selectedApi.init();
+    let data = account ? await webApi.getHomeTimeline('', params, account) : await api.getHomeTimeline('', params);
     if (!include_rts) {
         data = utils.excludeRetweet(data);
     }
@@ -54,7 +59,7 @@ async function handler(ctx) {
     }
 
     return {
-        title: 'Twitter following timeline',
+        title: account ? `Twitter For You timeline (${account.alias})` : 'Twitter following timeline',
         link: 'https://x.com/home',
         // description: userInfo?.description,
         item: utils.ProcessFeed(ctx, {
