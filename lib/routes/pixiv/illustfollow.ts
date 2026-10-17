@@ -40,7 +40,7 @@ Only for self-hosted
 :::`,
 };
 
-async function handler() {
+async function handler(ctx) {
     if (!config.pixiv || !config.pixiv.refreshToken) {
         throw new ConfigNotFoundError('pixiv RSS is disabled due to the lack of <a href="https://docs.rsshub.app/deploy/config#route-specific-configurations">relevant config</a>');
     }
@@ -57,13 +57,15 @@ async function handler() {
         link: 'https://www.pixiv.net/bookmark_new_illust.php',
         description: 'Pixiv关注的画师们的最新作品',
         item: illusts.map((illust) => {
-            const images = pixivUtils.getImgs(illust);
+            const media = pixivUtils.getItemMedia(illust, ctx.req.url);
             return {
                 title: illust.title,
                 author: illust.user.name,
                 pubDate: parseDate(illust.create_date),
-                description: `${illust.caption}<br><p>画师：${illust.user.name} - 阅览数：${illust.total_view} - 收藏数：${illust.total_bookmarks}</p>${images.join('')}`,
+                description: `${illust.caption}<br><p>画师：${illust.user.name} - 阅览数：${illust.total_view} - 收藏数：${illust.total_bookmarks}</p>${media.description}`,
                 link: `https://www.pixiv.net/artworks/${illust.id}`,
+                enclosure_url: media.enclosure_url,
+                enclosure_type: media.enclosure_type,
                 category: illust.tags.map((tag) => tag.name),
             };
         }),
