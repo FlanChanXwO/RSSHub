@@ -23,7 +23,7 @@ describe('Pixiv weekly R-18 ranking', () => {
     it('provides an image enclosure alongside the complete description gallery', async () => {
         config.pixiv.refreshToken = 'test-token';
         config.pixiv.imgProxy = 'https://i.pixiv.re';
-        vi.mocked(getToken).mockResolvedValue('access-token');
+        vi.mocked(getToken).mockResolvedValue('access-token' as never);
         vi.mocked(getRanking).mockResolvedValue({
             data: {
                 illusts: [
@@ -47,10 +47,7 @@ describe('Pixiv weekly R-18 ranking', () => {
                         total_view: 20,
                         total_bookmarks: 5,
                         tags: [],
-                        meta_pages: [
-                            { image_urls: { large: 'https://i.pximg.net/img-master/first.jpg' } },
-                            { image_urls: { large: 'https://i.pximg.net/img-master/second.jpg' } },
-                        ],
+                        meta_pages: [{ image_urls: { large: 'https://i.pximg.net/img-master/first.jpg' } }, { image_urls: { large: 'https://i.pximg.net/img-master/second.jpg' } }],
                     },
                 ],
             },

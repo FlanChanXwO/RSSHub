@@ -167,15 +167,13 @@ async function handler(ctx) {
         link: links[mode],
         description: dateStr + titles[mode],
         item: illusts.map((illust, index) => {
-            const imageUrls = pixivUtils.getImageUrls(illust);
-            const images = imageUrls.map((url) => `<p><img src="${url}" /></p>`);
-            const imageUrl = imageUrls[0];
+            const media = pixivUtils.getItemMedia(illust, ctx.req.url, true);
             return {
                 title: `#${index + 1} ${illust.title}`,
                 pubDate: parseDate(illust.create_date),
-                description: `${illust.caption}<br><p>画师：${illust.user.name} - 阅览数：${illust.total_view} - 收藏数：${illust.total_bookmarks}</p><br>${images.join('')}`,
-                enclosure_url: imageUrl,
-                enclosure_type: imageUrl ? (/\.png(?:\?|$)/i.test(imageUrl) ? 'image/png' : 'image/jpeg') : undefined,
+                description: `${illust.caption}<br><p>画师：${illust.user.name} - 阅览数：${illust.total_view} - 收藏数：${illust.total_bookmarks}</p><br>${media.description}`,
+                enclosure_url: media.enclosure_url,
+                enclosure_type: media.enclosure_type,
                 link: `https://www.pixiv.net/artworks/${illust.id}`,
                 author: [
                     {

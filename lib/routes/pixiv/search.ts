@@ -109,13 +109,15 @@ async function handler(ctx) {
         title: `${keyword} 的 pixiv ${order === 'popular' ? '热门' : ''}内容`,
         link: `https://www.pixiv.net/tags/${keyword}/artworks`,
         item: illusts.map((illust) => {
-            const images = pixivUtils.getImgs(illust);
+            const media = pixivUtils.getItemMedia(illust, ctx.req.url);
             return {
                 title: illust.title,
                 author: illust.user.name,
                 pubDate: parseDate(illust.create_date),
-                description: `${illust.caption}<br><p>画师：${illust.user.name} - 阅览数：${illust.total_view} - 收藏数：${illust.total_bookmarks}</p>${images.join('')}`,
+                description: `${illust.caption}<br><p>画师：${illust.user.name} - 阅览数：${illust.total_view} - 收藏数：${illust.total_bookmarks}</p>${media.description}`,
                 link: `https://www.pixiv.net/artworks/${illust.id}`,
+                enclosure_url: media.enclosure_url,
+                enclosure_type: media.enclosure_type,
             };
         }),
         allowEmpty: true,
