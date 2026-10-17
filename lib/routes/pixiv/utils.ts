@@ -1,6 +1,15 @@
 import { config } from '@/config';
 
+const getImageUrls = (illust) => {
+    const urls = illust.meta_pages?.length
+        ? illust.meta_pages.map((page) => page.image_urls.large || page.image_urls.medium || page.image_urls.original)
+        : [illust.image_urls?.large || illust.image_urls?.medium || illust.meta_single_page?.original_image_url];
+
+    return urls.filter(Boolean).map((url) => url.replace('https://i.pximg.net', () => config.pixiv.imgProxy));
+};
+
 export default {
+    getImageUrls,
     getImgs(illust) {
         const images: string[] = [];
         if (illust.meta_pages?.length) {
