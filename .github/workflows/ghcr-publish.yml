@@ -20,12 +20,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -35,13 +44,32 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
-          tags: |
-            ghcr.io/flanchanxwo/rsshub:latest
-            ghcr.io/flanchanxwo/rsshub:${{ github.sha }}
+          tags: ghcr.io/flanchanxwo/rsshub:${{ github.sha }}-${{ matrix.arch }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha,scope=ghcr-publish
-          cache-to: type=gha,scope=ghcr-publish,mode=max
+          cache-from: type=gha,scope=rsshub-${{ matrix.arch }}
+          cache-to: type=gha,scope=rsshub-${{ matrix.arch }},mode=max
+
+  manifest:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish multi-platform manifest
+        run: |
+          docker buildx imagetools create \
+            -t ghcr.io/flanchanxwo/rsshub:latest \
+            -t ghcr.io/flanchanxwo/rsshub:${{ github.sha }} \
+            ghcr.io/flanchanxwo/rsshub:${{ github.sha }}-amd64 \
+            ghcr.io/flanchanxwo/rsshub:${{ github.sha }}-arm64
+      - name: Verify manifest
+        run: docker buildx imagetools inspect ghcr.io/flanchanxwo/rsshub:${{ github.sha }}
