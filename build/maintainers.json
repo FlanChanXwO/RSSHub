@@ -10270,6 +10270,9 @@
   "/pixiv/user/:id": [
     "DIYgod"
   ],
+  "/pixiv/ugoira/:file": [
+    "FlanChanXwO"
+  ],
   "/pixiv/novel/series/:id": [
     "SnowAgar25",
     "keocheung"

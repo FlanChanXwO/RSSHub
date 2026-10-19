@@ -2267,6 +2267,7 @@ export type RoutePath =
   | `/pixiv/novel/series/:id`
   | `/pixiv/ranking/:mode/:date?`
   | `/pixiv/search/:keyword/:order?/:mode?/:include_ai?`
+  | `/pixiv/ugoira/:file`
   | `/pixiv/user/:id`
   | `/pixiv/user/bookmarks/:id`
   | `/pixiv/user/illustfollows`
