@@ -46,12 +46,18 @@ describe('Pixiv Ugoira GIF', () => {
         expect(() => encodeUgoiraGif(zipSync(files), [{ file: '../secret.jpg', delay: 20 }, frames[1]])).toThrow('unsupported frame filename');
     });
 
+    it('accepts an archive with more than 120 entries when only two frames are referenced', () => {
+        const extras = Object.fromEntries(Array.from({ length: 125 }, (_, i) => [`unused-${i}.jpg`, first]));
+        const gif = encodeUgoiraGif(zipSync({ ...files, ...extras }), frames);
+        expect(Buffer.from(gif.subarray(0, 6)).toString('ascii')).toBe('GIF89a');
+    });
+
     it('rejects excessive frame counts', () => {
         expect(() =>
             encodeUgoiraGif(
                 zipSync(files),
-                Array.from({ length: 121 }, () => frames[0])
+                Array.from({ length: 401 }, () => frames[0])
             )
-        ).toThrow('between 2 and 120');
+        ).toThrow('between 2 and 400');
     });
 });
